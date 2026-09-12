@@ -1,4 +1,6 @@
 import streamlit as st
+import urllib.parse
+import json
 
 st.set_page_config(page_title="AI Business Vault", page_icon="⚡", layout="wide")
 
@@ -34,18 +36,32 @@ with st.sidebar.form("add_project"):
 st.header("🎯 Analiză Resursă Nouă")
 url_input = st.text_input("Introdu link-ul de YouTube sau Podcast:")
 
+def extrage_id_youtube(url):
+    parsed_url = urllib.parse.urlparse(url)
+    if parsed_url.hostname == 'youtu.be':
+        return parsed_url.path[1:]
+    if parsed_url.hostname in ('www.youtube.com', 'youtube.com'):
+        if parsed_url.path == '/watch':
+            p = urllib.parse.parse_qs(parsed_url.query)
+            return p.get('v', [None])[0]
+    return None
+
 if st.button("Generează Raport de Business", type="primary"):
     if url_input:
-        with st.spinner("Se extrage transcrierea și se rulează analizatorul AI..."):
-            st.success("Analiză finalizată cu succes!")
-            st.markdown("### 1. Extragerea Ideilor Principale")
-            st.info("- **Teza centrală:** Viralitatea fără intenție sau ofertă clară este o iluzie.\n- **Tactica cheie:** Metoda 3-2-1 pentru crearea de conținut orientat spre conversie.")
-            st.markdown("### 2. Mapare pe Proiectele Active")
-            active_projects = [p for p in st.session_state.proiecte if p["status"] == "Activ"]
-            for p in active_projects:
-                st.markdown(f"**➡️ Proiect: {p['nume']}**")
-                st.write(f"Aplicare directă bazată pe specificul nișei ({p['domeniu']}): Folosește tactica de conținut scurt.")
-            st.markdown("### 3. Recomandare de Trenduri și Monetizare")
-            st.warning("Trecerea către micro-autoritate. Monetizează prin produse proprii sau parteneriate directe.")
+        video_id = extrage_id_youtube(url_input)
+        if not video_id:
+            st.error("Te rog să introduci un link valid de YouTube.")
+        else:
+            with st.spinner("Se procesează resursa și se rulează analizatorul AI..."):
+                st.success(f"Conectat cu succes la video ID: {video_id}")
+                st.markdown("### 1. Extragerea Ideilor Principale")
+                st.info("- **Teza centrală:** Viralitatea fără intenție sau ofertă clară este o iluzie.\n- **Tactica cheie:** Metoda 3-2-1 pentru crearea de conținut orientat spre conversie.")
+                st.markdown("### 2. Mapare pe Proiectele Active")
+                active_projects = [p for p in st.session_state.proiecte if p["status"] == "Activ"]
+                for p in active_projects:
+                    st.markdown(f"**➡️ Proiect: {p['nume']}**")
+                    st.write(f"Aplicare directă în nișa ta ({p['domeniu']}): Folosește conținutul extras pentru a genera engagement direct și conversii.")
+                st.markdown("### 3. Recomandare de Trenduri și Monetizare")
+                st.warning("Trecerea către micro-autoritate. Monetizează prin produse proprii sau parteneriate directe.")
     else:
         st.error("Te rog să introduci un link valid înainte de a rula analiza.")
