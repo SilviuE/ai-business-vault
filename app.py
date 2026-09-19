@@ -9,12 +9,12 @@ st.set_page_config(page_title="AI Business Vault", page_icon="⚡", layout="wide
 st.title("⚡ AI Business Vault")
 st.markdown("Transformă conținutul pasiv în strategii de acțiune și monetizare pentru portofoliul tău.")
 
-# Gestionarea cheii API pentru OpenAI
+# Gestionarea cheii API pentru Google Gemini
 with st.sidebar:
     st.header("⚙️ Configurare AI")
-    openai_api_key = st.text_input("Introdu cheia API OpenAI (ChatGPT):", type="password")
-    if not openai_api_key and "OPENAI_API_KEY" in os.environ:
-        openai_api_key = os.environ["OPENAI_API_KEY"]
+    gemini_api_key = st.text_input("Introdu cheia API Google Gemini:", type="password")
+    if not gemini_api_key and "GEMINI_API_KEY" in os.environ:
+        gemini_api_key = os.environ["GEMINI_API_KEY"]
 
 if 'proiecte' not in st.session_state:
     st.session_state.proiecte = [
@@ -66,7 +66,7 @@ if metoda_input == "Link YouTube":
 else:
     text_de_analizat = st.text_area("Lipește textul sau transcrierea videoclipului/podcastului aici:")
 
-def genereaza_analiza_openai(api_key, text_video, proiecte):
+def genereaza_analiza_gemini(api_key, text_video, proiecte):
     prompt = f"""Ești un consultant de business. Am extras următorul conținut: 
     "{text_video[:15000]}"...
     
@@ -83,27 +83,32 @@ def genereaza_analiza_openai(api_key, text_video, proiecte):
     - O idee clară de executat azi pornind de la informația primită.
     """
     
+    # Endpoint-ul oficial Google Generative Language pentru Gemini
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
     headers = {
-        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
     
-    # Folosim cel mai recent și eficient model OpenAI pentru sarcini text
     payload = {
-        "model": "gpt-4o-mini", 
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.7
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }]
     }
     
-    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+    response = requests.post(url, headers=headers, json=payload)
     if response.status_code == 200:
-        return response.json()['choices'][0]['message']['content']
+        data = response.json()
+        try:
+            return data['candidates'][0]['content']['parts'][0]['text']
+        except Exception:
+            return f"Eroare la procesarea răspunsului Gemini: {data}"
     else:
-        return f"Eroare API OpenAI: {response.text}"
+        return f"Eroare API Gemini: {response.text}"
 
 if st.button("Generează Raport de Business", type="primary"):
-    if not openai_api_key:
-        st.error("Te rog să introduci cheia API OpenAI în meniul din stânga.")
+    if not gemini_api_key:
+        st.error("Te rog să introduci cheia API Google Gemini în meniul din stânga.")
     else:
         continut_final = ""
         if metoda_input == "Link YouTube":
@@ -120,9 +125,9 @@ if st.button("Generează Raport de Business", type="primary"):
             continut_final = text_de_analizat
 
         if continut_final:
-            with st.spinner("ChatGPT analizează conținutul..."):
+            with st.spinner("Gemini analizează conținutul..."):
                 proiecte_active = [p['nume'] + " (" + p['domeniu'] + ")" for p in st.session_state.proiecte if p["status"] == "Activ"]
-                analiza = genereaza_analiza_openai(openai_api_key, continut_final, proiecte_active)
+                analiza = genereaza_analiza_gemini(gemini_api_key, continut_final, proiecte_active)
                 
-                st.success("Analiza a fost generată cu succes de ChatGPT!")
+                st.success("Analiza a fost generată cu succes de Google Gemini!")
                 st.markdown(analiza)
