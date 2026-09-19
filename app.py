@@ -24,6 +24,13 @@ if 'proiecte' not in st.session_state:
         {"nume": "SavoryHub / Patiserii.net", "domeniu": "Director gastronomic", "status": "Activ"}
     ]
 
+# Dicționar pentru stocarea istoricului pe proiecte și acțiuni imediate
+if 'istoric_rapoarte' not in st.session_state:
+    st.session_state.istoric_rapoarte = {p['nume']: [] for p in st.session_state.proiecte}
+
+if 'actiuni_imediate' not in st.session_state:
+    st.session_state.actiuni_imediate = []
+
 st.sidebar.header("📂 Portofoliu Proiecte")
 for i, p in enumerate(st.session_state.proiecte):
     col_s1, col_s2 = st.sidebar.columns([3, 1])
@@ -40,6 +47,8 @@ with st.sidebar.form("add_project"):
     submitted = st.form_submit_button("Salvează Proiect")
     if submitted and nume_nou:
         st.session_state.proiecte.append({"nume": nume_nou, "domeniu": domeniu_nou, "status": status_nou})
+        if nume_nou not in st.session_state.istoric_rapoarte:
+            st.session_state.istoric_rapoarte[nume_nou] = []
         st.rerun()
 
 st.header("🎯 Analiză Resursă Nouă")
@@ -70,31 +79,22 @@ def genereaza_analiza_gemini(api_key, text_video, proiecte):
     prompt = f"""Ești un consultant de business. Am extras următorul conținut: 
     "{text_video[:15000]}"...
     
-    Te rog să faci o analiză structurată pentru mine. Răspunde exclusiv în limba română folosind formatare Markdown, având următoarea structură:
+    Te rog să faci o analiză structurată pentru mine. Răspunde exclusiv în limba română folosind formatare Markdown, având următoarea structură exactă:
     
     ### 1. Extragerea Ideilor Principale
     - Rezumă în 2-3 fraze care este esența și direcția strategică din acest conținut.
     
     ### 2. Mapare pe Proiectele Active
     Pentru fiecare dintre următoarele proiecte pe care le dețin: {proiecte}
-    - Analizează strict cum se pot aplica ideile din material (dacă se pot aplica) pentru a crește sau monetiza acel proiect specific. Nu inventa dacă nu are legătură, adaptează la context.
+    - Analizează strict cum se pot aplica ideile din material (dacă se pot aplica) pentru a crește sau monetiza acel proiect specific.
     
     ### 3. Recomandare de Acțiune Imediată
-    - O idee clară de executat azi pornind de la informația primită.
+    - O idee clară și concisă de executat azi pornind de la informația primită.
     """
     
-    # Modelul cerut de server: gemini-3.6-flash
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
-    
-    headers = {
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }]
-    }
+    headers = {"Content-Type": "application/json"}
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
     
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code == 200:
@@ -125,9 +125,45 @@ if st.button("Generează Raport de Business", type="primary"):
             continut_final = text_de_analizat
 
         if continut_final:
-            with st.spinner("Gemini analizează conținutul..."):
-                proiecte_active = [p['nume'] + " (" + p['domeniu'] + ")" for p in st.session_state.proiecte if p["status"] == "Activ"]
-                analiza = genereaza_analiza_gemini(gemini_api_key, continut_final, proiecte_active)
+            with st.spinner("Gemini analizează conținutul și organizează datele în Vault..."):
+                proiecte_active_obj = [p for p in st.session_state.proiecte if p["status"] == "Activ"]
+                nume_proiecte_str = [p['nume'] + " (" + p['domeniu'] + ")" for p in proiecte_active_obj]
                 
-                st.success("Analiza a fost generată cu succes de Google Gemini!")
+                analiza = genereaza_analiza_gemini(gemini_api_key, continut_final, nume_proiecte_str)
+                
+                # Salvăm în istoric pentru fiecare proiect activ menționat sau general
+                for p in proiecte_active_obj:
+                    if p['nume'] not in st.session_state.istoric_rapoarte:
+                        st.session_state.istoric_rapoarte[p['nume']] = []
+                    st.session_state.istoric_rapoarte[p['nume']].append(analiza)
+                
+                # Salvăm acțiunea imediată în folderul dedicat
+                st.session_state.actiuni_imediate.append(analiza)
+                
+                st.success("Analiza a fost generată și salvată cu succes în Vault!")
                 st.markdown(analiza)
+
+st.markdown("---")
+st.header("🗄️ Arhivă Vault & Foldere Active")
+
+tab1, tab2 = st.tabs(["📁 Istoric pe Proiecte", "⚡ Acțiuni Imediate"])
+
+with tab1:
+    st.subheader("Rapoarte și Idei Salvate pe Proiecte")
+    proiect_selectat = st.selectbox("Alege proiectul pentru a vedea istoricul:", [p['nume'] for p in st.session_state.proiecte])
+    
+    if proiect_selectat in st.session_state.istoric_rapoarte and st.session_state.istoric_rapoarte[proiect_selectat]:
+        for idx, rap in enumerate(st.session_state.istoric_rapoarte[proiect_selectat]):
+            with st.expander(f"Raport #{idx+1} - {proiect_selectat}"):
+                st.markdown(rap)
+    else:
+        st.info("Nu există încă rapoarte salvate pentru acest proiect.")
+
+with tab2:
+    st.subheader("⚡ Dosar Acțiuni Imediate")
+    if st.session_state.actiuni_imediate:
+        for idx, act in enumerate(st.session_state.actiuni_imediate):
+            with st.expander(f"Acțiune / Sursă #{idx+1}"):
+                st.markdown(act)
+    else:
+        st.info("Nicio acțiune înregistrată momentan.")
