@@ -88,9 +88,9 @@ def genereaza_analiza_groq(api_key, text_video, proiecte):
         "Content-Type": "application/json"
     }
     
-    # Modelul actualizat și suportat în prezent pe Groq
+    # Folosim modelul stabil și activ de pe Groq
     payload = {
-        "model": "llama-3.3-70b-versatile", 
+        "model": "llama-3.1-8b-instant", 
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.7
     }
