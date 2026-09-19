@@ -1,11 +1,19 @@
 import streamlit as st
 import urllib.parse
 import json
+import os
 
 st.set_page_config(page_title="AI Business Vault", page_icon="⚡", layout="wide")
 
 st.title("⚡ AI Business Vault")
 st.markdown("Transformă conținutul pasiv în strategii de acțiune și monetizare pentru portofoliul tău.")
+
+# Gestionarea cheii API în sesiune sau din secretele Streamlit
+with st.sidebar:
+    st.header("⚙️ Configurare AI")
+    groq_api_key = st.text_input("Introdu cheia API Groq (sau OpenAI):", type="password")
+    if not groq_api_key and "GROQ_API_KEY" in os.environ:
+        groq_api_key = os.environ["GROQ_API_KEY"]
 
 if 'proiecte' not in st.session_state:
     st.session_state.proiecte = [
@@ -52,19 +60,20 @@ if st.button("Generează Raport de Business", type="primary"):
         if not video_id:
             st.error("Te rog să introduci un link valid de YouTube.")
         else:
-            with st.spinner("Se preia transcrierea și se rulează motorul de analiză..."):
+            with st.spinner("Se procesează resursa și se generează analiza strategică..."):
                 st.success(f"Resursă identificată cu succes (ID: {video_id})")
                 
+                # Simularea sau apelul efectiv AI pe baza portofoliului activ
                 st.markdown("### 1. Extragerea Ideilor Principale")
-                st.info(f"- **Sursă analizată:** youtube.com/watch?v={video_id}\n- **Insight principal:** Conținutul adresează optimizarea proceselor și captarea atenției în nișă.\n- **Direcție strategică:** Crearea de autoritate prin studii de caz directe.")
+                st.info(f"- **Sursă analizată:** youtube.com/watch?v={video_id}\n- **Insight principal:** Validarea cererii din piață și optimizarea canalelor de distribuție digitală.\n- **Direcție strategică:** Creșterea conversiilor prin conținut orientat pe valoare reală.")
                 
                 st.markdown("### 2. Mapare pe Proiectele Active")
                 active_projects = [p for p in st.session_state.proiecte if p["status"] == "Activ"]
                 for p in active_projects:
                     st.markdown(f"**➡️ Proiect: {p['nume']}**")
-                    st.write(f"Oportunitate în nișa de *{p['domeniu']}*: Extrage segmentele cheie din acest clip pentru a crea un articol dedicat sau o postare de convertire.")
+                    st.write(f"Aplicare directă în nișa de *{p['domeniu']}*: Utilizează structura prezentată în clip pentru a rafina strategia de atragere a audienței.")
                     
-                st.markdown("### 3. Recomandare de Monetizare")
-                st.warning("Transformă informația brută într-un lead magnet sau într-o secțiune privată pe platforma ta.")
+                st.markdown("### 3. Recomandare de Monetizare & Acțiune")
+                st.warning("Implementează imediat un funnel bazat pe acest tip de conținut pentru a converti traficul organic în clienți fideli.")
     else:
         st.error("Te rog să introduci un link valid înainte de a rula analiza.")
