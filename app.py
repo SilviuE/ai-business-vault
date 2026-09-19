@@ -83,8 +83,8 @@ def genereaza_analiza_gemini(api_key, text_video, proiecte):
     - O idee clară de executat azi pornind de la informația primită.
     """
     
-    # Am actualizat la modelul stabil actual pe v1beta
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    # Modelul cerut de server: gemini-3.6-flash
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
     
     headers = {
         "Content-Type": "application/json"
