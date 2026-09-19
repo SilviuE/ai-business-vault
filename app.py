@@ -88,8 +88,9 @@ def genereaza_analiza_groq(api_key, text_video, proiecte):
         "Content-Type": "application/json"
     }
     
+    # Am actualizat modelul la unul activ și suportat pe Groq
     payload = {
-        "model": "llama3-8b-8192", 
+        "model": "llama-3.1-8b-instant", 
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.7
     }
@@ -114,7 +115,7 @@ if st.button("Generează Raport de Business", type="primary"):
                         transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'ro'])
                         continut_final = " ".join([t['text'] for t in transcript])
                 except Exception:
-                    st.error("YouTube a restricționat preluarea automată a subtitrărilor pe acest server. Te rog să alegi opțiunea 'Introducere Directă Text / Transcriere' și să lipești textul copiat din descriere sau de pe YouTube.")
+                    st.error("YouTube a restricționat preluarea automată a subtitrărilor pe acest server. Te rog să alegi opțiunea 'Introducere Directă Text / Transcriere' și să lipești textul.")
         else:
             continut_final = text_de_analizat
 
