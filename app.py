@@ -9,12 +9,12 @@ st.set_page_config(page_title="AI Business Vault", page_icon="⚡", layout="wide
 st.title("⚡ AI Business Vault")
 st.markdown("Transformă conținutul pasiv în strategii de acțiune și monetizare pentru portofoliul tău.")
 
-# Gestionarea cheii API
+# Gestionarea cheii API pentru OpenAI
 with st.sidebar:
     st.header("⚙️ Configurare AI")
-    groq_api_key = st.text_input("Introdu cheia API Groq:", type="password")
-    if not groq_api_key and "GROQ_API_KEY" in os.environ:
-        groq_api_key = os.environ["GROQ_API_KEY"]
+    openai_api_key = st.text_input("Introdu cheia API OpenAI (ChatGPT):", type="password")
+    if not openai_api_key and "OPENAI_API_KEY" in os.environ:
+        openai_api_key = os.environ["OPENAI_API_KEY"]
 
 if 'proiecte' not in st.session_state:
     st.session_state.proiecte = [
@@ -66,7 +66,7 @@ if metoda_input == "Link YouTube":
 else:
     text_de_analizat = st.text_area("Lipește textul sau transcrierea videoclipului/podcastului aici:")
 
-def genereaza_analiza_groq(api_key, text_video, proiecte):
+def genereaza_analiza_openai(api_key, text_video, proiecte):
     prompt = f"""Ești un consultant de business. Am extras următorul conținut: 
     "{text_video[:15000]}"...
     
@@ -88,22 +88,22 @@ def genereaza_analiza_groq(api_key, text_video, proiecte):
         "Content-Type": "application/json"
     }
     
-    # Folosim modelul stabil și activ de pe Groq
+    # Folosim cel mai recent și eficient model OpenAI pentru sarcini text
     payload = {
-        "model": "llama-3.1-8b-instant", 
+        "model": "gpt-4o-mini", 
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.7
     }
     
-    response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
+    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
     if response.status_code == 200:
         return response.json()['choices'][0]['message']['content']
     else:
-        return f"Eroare API Groq: {response.text}"
+        return f"Eroare API OpenAI: {response.text}"
 
 if st.button("Generează Raport de Business", type="primary"):
-    if not groq_api_key:
-        st.error("Te rog să introduci cheia API Groq în meniul din stânga.")
+    if not openai_api_key:
+        st.error("Te rog să introduci cheia API OpenAI în meniul din stânga.")
     else:
         continut_final = ""
         if metoda_input == "Link YouTube":
@@ -120,9 +120,9 @@ if st.button("Generează Raport de Business", type="primary"):
             continut_final = text_de_analizat
 
         if continut_final:
-            with st.spinner("Inteligența Artificială analizează conținutul..."):
+            with st.spinner("ChatGPT analizează conținutul..."):
                 proiecte_active = [p['nume'] + " (" + p['domeniu'] + ")" for p in st.session_state.proiecte if p["status"] == "Activ"]
-                analiza = genereaza_analiza_groq(groq_api_key, continut_final, proiecte_active)
+                analiza = genereaza_analiza_openai(openai_api_key, continut_final, proiecte_active)
                 
-                st.success("Analiza a fost generată cu succes!")
+                st.success("Analiza a fost generată cu succes de ChatGPT!")
                 st.markdown(analiza)
