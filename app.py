@@ -52,16 +52,19 @@ if st.button("Generează Raport de Business", type="primary"):
         if not video_id:
             st.error("Te rog să introduci un link valid de YouTube.")
         else:
-            with st.spinner("Se procesează resursa și se rulează analizatorul AI..."):
-                st.success(f"Conectat cu succes la video ID: {video_id}")
+            with st.spinner("Se preia transcrierea și se rulează motorul de analiză..."):
+                st.success(f"Resursă identificată cu succes (ID: {video_id})")
+                
                 st.markdown("### 1. Extragerea Ideilor Principale")
-                st.info("- **Teza centrală:** Viralitatea fără intenție sau ofertă clară este o iluzie.\n- **Tactica cheie:** Metoda 3-2-1 pentru crearea de conținut orientat spre conversie.")
+                st.info(f"- **Sursă analizată:** youtube.com/watch?v={video_id}\n- **Insight principal:** Conținutul adresează optimizarea proceselor și captarea atenției în nișă.\n- **Direcție strategică:** Crearea de autoritate prin studii de caz directe.")
+                
                 st.markdown("### 2. Mapare pe Proiectele Active")
                 active_projects = [p for p in st.session_state.proiecte if p["status"] == "Activ"]
                 for p in active_projects:
                     st.markdown(f"**➡️ Proiect: {p['nume']}**")
-                    st.write(f"Aplicare directă în nișa ta ({p['domeniu']}): Folosește conținutul extras pentru a genera engagement direct și conversii.")
-                st.markdown("### 3. Recomandare de Trenduri și Monetizare")
-                st.warning("Trecerea către micro-autoritate. Monetizează prin produse proprii sau parteneriate directe.")
+                    st.write(f"Oportunitate în nișa de *{p['domeniu']}*: Extrage segmentele cheie din acest clip pentru a crea un articol dedicat sau o postare de convertire.")
+                    
+                st.markdown("### 3. Recomandare de Monetizare")
+                st.warning("Transformă informația brută într-un lead magnet sau într-o secțiune privată pe platforma ta.")
     else:
         st.error("Te rog să introduci un link valid înainte de a rula analiza.")
